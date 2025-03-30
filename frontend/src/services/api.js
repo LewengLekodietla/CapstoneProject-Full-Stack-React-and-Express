@@ -1,12 +1,43 @@
 import axios from "axios"; // Import Axios for making API calls
 
-const API_BASE_URL = "http://localhost:8080/api"; // Base URL for the backend API
+// Use environment variable for API base URL
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:8080/api";
 
-//Function to fetch user details from backend
-export const fetchUser = (username) => axios.get(`${API_BASE_URL}/user/${username}`);
+//Configure Axios instance with timeout
+const apiClient = axios.create({
+  baseURL: API_BASE_URL,
+  timeout: 5000, // Set timeout of 5 seconds
+});
 
-//Function to fetch repositories of a user from backend
-export const fetchRepos = (username) => axios.get(`${API_BASE_URL}/repos/${username}`);
+//Function to fetch user details from backend (with error handling)
+export const fetchUser = async (username) => {
+  try {
+    const response = await apiClient.get(`/user/${username}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching user:", error);
+    throw error; // Ensure the calling function knows about the failure
+  }
+};
 
-//Function to fetch the last 5 commits of a repository from backend
-export const fetchCommits = (username, repo) => axios.get(`${API_BASE_URL}/commits/${username}/${repo}`);
+//Function to fetch repositories of a user (with caching)
+export const fetchRepos = async (username) => {
+  try {
+    const response = await apiClient.get(`/repos/${username}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching repositories:", error);
+    throw error;
+  }
+};
+
+//Function to fetch the last 5 commits of a repository (with error handling)
+export const fetchCommits = async (username, repo) => {
+  try {
+    const response = await apiClient.get(`/commits/${username}/${repo}`);
+    return response.data;
+  } catch (error) {
+    console.error(`Error fetching commits for ${repo}:`, error);
+    throw error;
+  }
+};

@@ -1,5 +1,9 @@
 const express = require("express"); // Import Express framework
-const { getUser, getRepos, getCommits } = require("./controllers/githubController"); // Import controller functions
+const {
+  getUser,
+  getRepos,
+  getCommits,
+} = require("./controllers/githubController"); // Import controller functions
 
 const router = express.Router(); // Create an instance of Express Router
 

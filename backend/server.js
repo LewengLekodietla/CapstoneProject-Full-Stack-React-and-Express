@@ -12,5 +12,9 @@ app.use(express.json()); // Enable parsing of JSON request bodies
 
 app.use("/api", routes); // Use the defined API routes under "/api" prefix
 
-const PORT = process.env.PORT || 8080; // Define the server port
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`)); // Start the server
+// Only listen if not in test mode
+if (process.env.NODE_ENV !== "test") {
+    app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+  }
+  
+  module.exports = app; // Export for testing

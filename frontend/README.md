@@ -1,70 +1,145 @@
-# Getting Started with Create React App
+# Capstone Project: Full-Stack GitHub User Explorer (React + Express)
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+This project is a full-stack web application built with **React** (frontend) and **Express** (backend) that allows users to:
 
-## Available Scripts
+- Search for GitHub users by username
+- View user profiles and bios
+- Explore public repositories
+- See the latest 5 commits of any repository
 
-In the project directory, you can run:
+> ✅ Built as part of the HyperionDev Capstone IV project.
 
-### `npm start`
+---
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+## 📁 Project Structure
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+```
+CapstoneProject-Full-Stack-React-and-Express/
+├── backend/
+│   ├── controllers/
+│   │   └── githubController.js
+│   ├── tests/
+│   │   └── githubController.test.js
+│   ├── routes.js
+│   ├── server.js
+│   └── .env.example
+├── frontend/
+│   ├── src/
+│   │   ├── components/
+│   │   │   └── Search.js
+│   │   ├── pages/
+│   │   │   └── UserProfile.js
+│   │   ├── services/
+│   │   │   └── api.js
+│   │   ├── tests/
+│   │   │   ├── Search.test.js
+│   │   │   └── UserProfile.test.js
+│   │   ├── App.js
+│   │   └── setupTests.js
+│   ├── public/
+│   └── package.json
+├── README.md
+└── package-lock.json
+```
 
-### `npm test`
+---
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## 🛠️ Technologies Used
 
-### `npm run build`
+- **Frontend:** React 18, Axios, React Router DOM, Jest, React Testing Library
+- **Backend:** Node.js, Express, Axios, Jest, Supertest
+- **Security:** Helmet, CORS
+- **Environment Management:** dotenv
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+---
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## 🚀 Getting Started
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+### 1. Clone the repository
+```bash
+git clone https://github.com/LewengLekodietla/CapstoneProject-Full-Stack-React-and-Express.git
+cd CapstoneProject-Full-Stack-React-and-Express
+```
 
-### `npm run eject`
+### 2. Backend Setup
+```bash
+cd backend
+cp .env.example .env
+# Add your GitHub token to the .env file
+npm install
+npm start
+```
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+### 3. Frontend Setup
+```bash
+cd ../frontend
+npm install
+npm start
+```
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+---
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+## 🔐 .env Configuration
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+Create a `.env` file in your `backend` directory:
 
-## Learn More
+```
+PORT=8080
+GITHUB_TOKEN=your_github_personal_access_token
+```
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+> ⚠️ Your token must have **public_repo** access if rate-limiting issues arise.
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+---
 
-### Code Splitting
+## 🧪 Running Tests
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+### Backend
+```bash
+cd backend
+npm test
+```
 
-### Analyzing the Bundle Size
+### Frontend
+```bash
+cd frontend
+npm test
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+---
 
-### Making a Progressive Web App
+## 📸 Screenshots
+*Coming soon...*
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+---
 
-### Advanced Configuration
+## 📌 Features Implemented
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+- ✅ GitHub User Search
+- ✅ Profile Detail View
+- ✅ Repository List
+- ✅ Last 5 Commits Per Repo
+- ✅ Axios-based API communication
+- ✅ Unit Tests (Frontend & Backend)
+- ✅ Modular File Structure
+- ✅ Error & Loading Handling
 
-### Deployment
+---
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+## 🧠 Author
 
-### `npm run build` fails to minify
+**Leweng Makgopa**  
+HyperionDev Capstone Project IV
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+---
+
+## 📄 License
+
+This project is licensed for educational purposes only.
+
+---
+
+## 🙌 Acknowledgements
+
+- GitHub REST API
+- HyperionDev Bootcamp (Full-Stack Development)

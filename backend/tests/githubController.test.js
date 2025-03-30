@@ -5,24 +5,24 @@ const app = require("../server");  // Import the Express app for testing
 describe("GitHub API Routes", () => {
     
     // Test to check if the API correctly fetches GitHub user details
-    test("GET /api/user/:username - Fetches GitHub user data", async () => {
-        const res = await request(app).get("/api/user/octocat"); // Example username
-        expect(res.statusCode).toBe(200); // Expect HTTP 200 (OK)
-        expect(res.body).toHaveProperty("login", "octocat"); // Expect response to contain 'login' field
-    });
+    test("GET /api/user/:username returns user data", async () => {
+        const res = await request(app).get("/api/user/octocat");
+        expect(res.statusCode).toBe(200);
+        expect(res.body).toHaveProperty("login", "octocat");
+      });
 
     // Test to check if the API correctly fetches GitHub user repositories
-    test("GET /api/repos/:username - Fetches user repositories", async () => {
-        const res = await request(app).get("/api/repos/octocat"); // Example username
-        expect(res.statusCode).toBe(200); // Expect HTTP 200 (OK)
-        expect(Array.isArray(res.body)).toBe(true); // Expect response to be an array
-    });
+    test("GET /api/repos/:username returns repo list", async () => {
+        const res = await request(app).get("/api/repos/octocat");
+        expect(res.statusCode).toBe(200);
+        expect(Array.isArray(res.body)).toBe(true);
+      });
 
     // Test to check if the API correctly fetches the last 5 commits for a repo
-    test("GET /api/commits/:username/:repo - Fetches last 5 commits", async () => {
-        const res = await request(app).get("/api/commits/octocat/hello-world"); // Example repo
-        expect(res.statusCode).toBe(200); // Expect HTTP 200 (OK)
-        expect(Array.isArray(res.body)).toBe(true); // Expect response to be an array
-    });
+    test("GET /api/commits/:username/:repo returns last 5 commits", async () => {
+        const res = await request(app).get("/api/commits/octocat/hello-world");
+        expect(res.statusCode).toBe(200);
+        expect(Array.isArray(res.body)).toBe(true);
+      });
 
 });
