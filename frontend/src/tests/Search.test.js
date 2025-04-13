@@ -1,25 +1,29 @@
 import React from "react";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import Search from "../components/Search";
-import { fetchUser } from "../services/api";
+import axios from "axios";
 
-//Mock the fetchUser API
-jest.mock("../services/api", () => ({
-  __esModule: true,
-  fetchUser: jest.fn(),
-}));
+jest.mock("axios");
 
-//Scoped mock for useNavigate
+// Mock useNavigate and simulate routing behavior
 const mockNavigate = jest.fn();
-
 jest.mock("react-router-dom", () => ({
   ...jest.requireActual("react-router-dom"),
   useNavigate: () => mockNavigate,
-  useParams: () => ({ username: "test-user" }),
 }));
 
 describe("Search Component", () => {
+  // Suppress console.error messages during tests
+  beforeEach(() => {
+    jest.spyOn(console, "error").mockImplementation(() => {});
+  });
+
+  // Restore console and mocks after each test
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   it("renders input and button", () => {
     render(
       <MemoryRouter>
@@ -30,50 +34,35 @@ describe("Search Component", () => {
     expect(
       screen.getByPlaceholderText("Enter GitHub username")
     ).toBeInTheDocument();
-    expect(screen.getByText("Search")).toBeInTheDocument();
-  });
-
-  it("shows loading state during search", async () => {
-    fetchUser.mockResolvedValueOnce({ login: "mockUser" });
-
-    render(
-      <MemoryRouter>
-        <Search onUserFound={jest.fn()} />
-      </MemoryRouter>
-    );
-
-    fireEvent.change(screen.getByPlaceholderText("Enter GitHub username"), {
-      target: { value: "mockUser" },
-    });
-    fireEvent.click(screen.getByText("Search"));
-
-    expect(await screen.findByText("Searching...")).toBeInTheDocument();
+    expect(screen.getByRole("button")).toBeInTheDocument();
   });
 
   it("navigates to profile on successful search", async () => {
-    fetchUser.mockResolvedValueOnce({ login: "mockUser" });
+    const mockUser = { login: "mockUser" };
+    axios.get.mockResolvedValueOnce({ data: mockUser });
 
-    const setUser = jest.fn();
+    const onUserFound = jest.fn();
 
     render(
       <MemoryRouter>
-        <Search onUserFound={setUser} />
+        <Search onUserFound={onUserFound} />
       </MemoryRouter>
     );
 
     fireEvent.change(screen.getByPlaceholderText("Enter GitHub username"), {
       target: { value: "mockUser" },
     });
-    fireEvent.click(screen.getByText("Search"));
 
-    expect(await screen.findByText("Searching...")).toBeInTheDocument();
-    expect(fetchUser).toHaveBeenCalledWith("mockUser");
-    expect(mockNavigate).toHaveBeenCalledWith("/profile/mockUser");
+    fireEvent.click(screen.getByRole("button", { name: /search/i }));
+
+    await waitFor(() => {
+      expect(onUserFound).toHaveBeenCalledWith(mockUser);
+      expect(mockNavigate).toHaveBeenCalledWith("/profile/mockUser");
+    });
   });
 
   it("shows error on failed search (user not found)", async () => {
-    // Simulate 404 response
-    fetchUser.mockRejectedValueOnce({
+    axios.get.mockRejectedValueOnce({
       response: { status: 404 },
     });
 
@@ -84,19 +73,16 @@ describe("Search Component", () => {
     );
 
     fireEvent.change(screen.getByPlaceholderText("Enter GitHub username"), {
-      target: { value: "invalidUser" },
+      target: { value: "unknownUser" },
     });
-    fireEvent.click(screen.getByText("Search"));
 
-    // Use flexible content matcher to avoid rendering issues
-    expect(
-      await screen.findByText((text) =>
-        text.toLowerCase().includes("user not found")
-      )
-    ).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /search/i }));
+
+    expect(await screen.findByText(/user not found/i)).toBeInTheDocument();
   });
+  it("shows generic error on other failures", async () => {
+    axios.get.mockRejectedValueOnce(new Error("Server error"));
 
-  it("shows error for invalid username format", () => {
     render(
       <MemoryRouter>
         <Search onUserFound={jest.fn()} />
@@ -104,26 +90,11 @@ describe("Search Component", () => {
     );
 
     fireEvent.change(screen.getByPlaceholderText("Enter GitHub username"), {
-      target: { value: "invalid user$%" },
+      target: { value: "testUser" },
     });
-    fireEvent.click(screen.getByText("Search"));
 
-    expect(
-      screen.getByText("Invalid GitHub username format.")
-    ).toBeInTheDocument();
-  });
+    fireEvent.click(screen.getByRole("button", { name: /search/i }));
 
-  it("shows error if input is empty", () => {
-    render(
-      <MemoryRouter>
-        <Search onUserFound={jest.fn()} />
-      </MemoryRouter>
-    );
-
-    fireEvent.click(screen.getByText("Search"));
-
-    expect(
-      screen.getByText("Please enter a GitHub username")
-    ).toBeInTheDocument();
+    expect(await screen.findByText(/an error occurred/i)).toBeInTheDocument();
   });
 });

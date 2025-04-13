@@ -1,6 +1,4 @@
-// setupTests.js
 import "@testing-library/jest-dom";
-
 import "mutationobserver-shim";
 
 //Mock fetch
@@ -13,7 +11,6 @@ global.fetch = jest.fn(() =>
 //Mock react-router-dom globally
 jest.mock("react-router-dom", () => ({
   ...jest.requireActual("react-router-dom"),
-  useNavigate: () => jest.fn(),
   useParams: () => ({ username: "test-user" }),
 }));
 

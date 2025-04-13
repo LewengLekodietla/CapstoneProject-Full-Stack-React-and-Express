@@ -6,6 +6,8 @@ const routes = require("./routes"); // Import API routes
 
 const app = express(); // Initialize Express application
 
+const PORT = process.env.PORT || 5000; // Define the PORT with a fallback
+
 app.use(cors()); // Enable CORS for all requests
 app.use(helmet()); // Secure the app by setting various HTTP headers
 app.use(express.json()); // Enable parsing of JSON request bodies
