@@ -26,7 +26,9 @@ const Search = ({ onUserFound }) => {
     setLoading(true);
     try {
       const data = await fetchUser(username);
-      onUserFound(data); // Store user data in App state
+      if(onUserFound) {
+        onUserFound(data);
+      }
       navigate(`/profile/${username}`); // Redirect to profile page
     } catch (err) {
       if (err.response && err.response.status === 404) {

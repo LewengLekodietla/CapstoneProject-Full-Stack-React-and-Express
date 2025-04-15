@@ -1,88 +1,67 @@
-import React from 'react';
-import { useState, useEffect } from "react";
+
+import React, { useEffect, useState } from "react";
 import { fetchRepos, fetchCommits } from "../services/api";
-import { useNavigate } from "react-router-dom";
 
 const UserProfile = ({ user }) => {
-  const [repos, setRepos] = useState([]); // Stores repositories
-  const [commits, setCommits] = useState([]); // Stores commit history
-  const [selectedRepo, setSelectedRepo] = useState(null); // Tracks selected repo
-  const [loadingRepos, setLoadingRepos] = useState(false); // Loading state for repositories
-  const [loadingCommits, setLoadingCommits] = useState(false); // Loading state for commits
-  const [error, setError] = useState(null); // Stores error messages
-  const navigate = useNavigate();
+  const [repos, setRepos] = useState([]);
+  const [commits, setCommits] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  //Delayed redirect if no user is found
   useEffect(() => {
-    if (!user) {
-      setTimeout(() => {
-        navigate("/");
-      }, 3000);// Delay of 3 seconds before redirecting
-      return;
-  }
+    const loadRepos = async () => {
+      setLoading(true);
+      setError("");
+      try {
+        const response = await fetchRepos(user.login);
+        setRepos(response.data);
+      } catch (err) {
+        setError("Failed to fetch repos");
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  setLoadingRepos(true);
-    fetchRepos(user.login)
-      .then((data) => setRepos(data))
-      .catch(() => setError("Failed to fetch repositories."))
-      .finally(() => setLoadingRepos(false));
-  }, [user, navigate]);
+    if (user?.login) {
+      loadRepos();
+    }
+  }, [user]);
 
-  //Fetch commits with better error handling
-  const loadCommits = (repoName) => {
-    setLoadingCommits(true);
-    setSelectedRepo(repoName);
-    fetchCommits(user.login, repoName)
-      .then((data) => {
-        setCommits(data);
-        setError(null);
-      })
-      .catch((err) => {
-        setError(`Failed to fetch commits for ${repoName}. Please try again.`);
-      })
-      .finally(() => setLoadingCommits(false));
+  const handleRepoClick = async (repoName) => {
+    setLoading(true);
+    setError("");
+    try {
+      const response = await fetchCommits(user.login, repoName);
+      setCommits(response.data.slice(0, 5));
+    } catch (err) {
+      setError("Failed to fetch commits");
+    } finally {
+      setLoading(false);
+    }
   };
-
-  //Prevent unnecessary rendering when user is missing
-  if (!user) return <p>No user selected. Redirecting...</p>;
 
   return (
     <div>
-      <h2>{user.name || user.login}</h2>
-      <img src={user.avatar_url} alt="avatar" width={100} />
-      <p>{user.bio || "No bio available"}</p>
-      <a href={user.html_url} target="_blank" rel="noreferrer" style={{ color: "blue" }}>
-        Visit GitHub Profile
-      </a>
-
-      <h3>Repositories</h3>
-      {loadingRepos ? <p>Loading...</p> : repos.length === 0 ? <p>No repositories found.</p> : (
-        <ul>
-          {repos.slice(0, 5).map((repo) => (
-            <li key={repo.id}>
-              <strong>{repo.name}</strong> - {repo.description || "No description"}
-              <button onClick={() => loadCommits(repo.name)} disabled={loadingCommits}>
-                {loadingCommits && selectedRepo === repo.name ? "Loading..." : "View Commits"}
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
-
-      {commits.length > 0 && selectedRepo && (
+      <h2>{user.name || user.login}'s Repositories</h2>
+      {loading && <p>Loading...</p>}
+      {error && <p>{error}</p>}
+      <ul>
+        {repos.map((repo) => (
+          <li key={repo.id} onClick={() => handleRepoClick(repo.name)}>
+            {repo.name}
+          </li>
+        ))}
+      </ul>
+      {commits.length > 0 && (
         <div>
-          <h4>Last 5 Commits in {selectedRepo}</h4>
+          <h3>Last 5 Commits</h3>
           <ul>
-            {commits.map((c, i) => (
-              <li key={i}>
-                <strong>{new Date(c.date).toLocaleString()}</strong>: {c.message}
-              </li>
+            {commits.map((commit, index) => (
+              <li key={index}>{commit.commit.message}</li>
             ))}
           </ul>
         </div>
       )}
-
-      {error && <p style={{ color: "red" }}>{error}</p>}
     </div>
   );
 };

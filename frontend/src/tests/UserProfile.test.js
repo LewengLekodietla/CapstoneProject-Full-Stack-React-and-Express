@@ -1,102 +1,90 @@
-import { render, screen, waitFor, fireEvent } from "@testing-library/react";
-import { MemoryRouter, Route, Routes } from "react-router-dom";
-import UserProfile from "../pages/UserProfile";
-import axios from "axios";
 
-//Mock axios globally
-jest.mock("axios");
+import React from "react";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import UserProfile from "../pages/UserProfile";
+import * as api from "../services/api";
+import { MemoryRouter } from "react-router-dom";
+
+jest.mock("../services/api");
 
 const mockUser = {
-  login: "test-user",
-  name: "Test User",
-  avatar_url: "https://example.com/avatar.png",
-  bio: "This is a test user.",
-  html_url: "https://github.com/test-user",
+  login: "mockuser",
+  name: "Mock User",
 };
 
 const mockRepos = [
-  { name: "repo-one", id: 1, description: "Repo One Description" },
-  { name: "repo-two", id: 2, description: "Repo Two Description" },
+  { id: 1, name: "repo1" },
+  { id: 2, name: "repo2" },
 ];
 
 const mockCommits = [
-  { message: "Initial commit", date: "2023-09-01T12:00:00Z" },
+  { commit: { message: "Initial commit" } },
+  { commit: { message: "Update README" } },
 ];
 
-const renderWithRouter = () => {
-  return render(
-    <MemoryRouter initialEntries={[`/profile/${mockUser.login}`]}>
-      <Routes>
-        <Route path="/profile/:username" element={<UserProfile user={mockUser} />} />
-      </Routes>
-    </MemoryRouter>
-  );
-};
-
-describe("UserProfile Component", () => {
-  // Suppress console.error messages during tests
+describe("UserProfile", () => {
   beforeEach(() => {
-    jest.spyOn(console, "error").mockImplementation(() => {});
+    jest.spyOn(console, 'error').mockImplementation(() => {});
   });
 
-  // Restore console and mocks after each test
   afterEach(() => {
-    jest.clearAllMocks();
     jest.restoreAllMocks();
+    jest.clearAllMocks();
   });
 
-  test("renders user repositories and latest commits on click", async () => {
-    axios.get.mockImplementation((url) => {
-      if (url.includes(`/users/${mockUser.login}/repos`)) {
-        return Promise.resolve({ data: mockRepos });
-      }
-      if (url.includes(`/repos/${mockUser.login}/repo-one/commits`)) {
-        return Promise.resolve({
-          data: [{ commit: { message: "Initial commit", author: { date: "2023-09-01T12:00:00Z" } } }],
-        });
-      }
-    });
-
-    renderWithRouter();
-
-    expect(await screen.findByText(/repo-one/i)).toBeInTheDocument();
-
-    fireEvent.click(screen.getByText("View Commits"));
-
-    expect(await screen.findByText(/Initial commit/i)).toBeInTheDocument();
+  test("displays repos after successful fetch", async () => {
+    api.fetchRepos.mockResolvedValueOnce({ data: mockRepos });
+    render(
+      <MemoryRouter>
+        <UserProfile user={mockUser} />
+      </MemoryRouter>
+    );
+    expect(await screen.findByText("repo1")).toBeInTheDocument();
+    expect(screen.getByText("repo2")).toBeInTheDocument();
   });
 
-  test("displays error message if fetchRepos fails", async () => {
-    axios.get.mockRejectedValueOnce(new Error("Failed to fetch repos"));
+  test("shows commits on repo click", async () => {
+    api.fetchRepos.mockResolvedValueOnce({ data: mockRepos });
+    api.fetchCommits.mockResolvedValueOnce({ data: mockCommits });
 
-    renderWithRouter();
+    render(
+      <MemoryRouter>
+        <UserProfile user={mockUser} />
+      </MemoryRouter>
+    );
 
-    expect(await screen.findByText(/Failed to fetch repositories/i)).toBeInTheDocument();
+    const repoItem = await screen.findByText("repo1");
+    fireEvent.click(repoItem);
+
+    await waitFor(() =>
+      expect(screen.getByText("Initial commit")).toBeInTheDocument()
+    );
+    expect(screen.getByText("Update README")).toBeInTheDocument();
   });
 
-  test("displays error message if fetchCommits fails", async () => {
-    axios.get.mockImplementation((url) => {
-      if (url.includes(`/users/${mockUser.login}/repos`)) {
-        return Promise.resolve({ data: mockRepos });
-      }
-      if (url.includes(`/repos/${mockUser.login}/repo-one/commits`)) {
-        return Promise.reject(new Error("Commit fetch failed"));
-      }
-    });
-
-    renderWithRouter();
-
-    expect(await screen.findByText(/repo-one/i)).toBeInTheDocument();
-    fireEvent.click(screen.getByText("View Commits"));
-
-    expect(await screen.findByText(/Failed to fetch commits/i)).toBeInTheDocument();
+  test("handles repo fetch error", async () => {
+    api.fetchRepos.mockRejectedValueOnce(new Error("Network error"));
+    render(
+      <MemoryRouter>
+        <UserProfile user={mockUser} />
+      </MemoryRouter>
+    );
+    expect(await screen.findByText("Failed to fetch repos")).toBeInTheDocument();
   });
 
-  test("handles empty repo list", async () => {
-    axios.get.mockResolvedValueOnce({ data: [] });
+  test("handles commit fetch error", async () => {
+    api.fetchRepos.mockResolvedValueOnce({ data: mockRepos });
+    api.fetchCommits.mockRejectedValueOnce(new Error("Commit error"));
 
-    renderWithRouter();
+    render(
+      <MemoryRouter>
+        <UserProfile user={mockUser} />
+      </MemoryRouter>
+    );
 
-    expect(await screen.findByText(/No repositories found/i)).toBeInTheDocument();
+    const repoItem = await screen.findByText("repo1");
+    fireEvent.click(repoItem);
+
+    expect(await screen.findByText("Failed to fetch commits")).toBeInTheDocument();
   });
 });
