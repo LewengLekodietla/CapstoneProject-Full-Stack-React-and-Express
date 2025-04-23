@@ -1,7 +1,11 @@
 {
-    "parser": "babel-eslint",
-    "parserOptions": {
-      "sourceType": "module",
-      "allowImportExportEverywhere": true
-    }
+    "parser": "@babel/eslint-parser",
+    "extends": ["react-app", "eslint:recommended"],
+    "env": {
+      "browser": true,
+      "node": true,
+      "es2021": true,
+      "jest": true
+    },
+    "rules": {}
   }

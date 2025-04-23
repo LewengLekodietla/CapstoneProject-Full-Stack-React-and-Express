@@ -1,61 +1,35 @@
-import React from 'react';
-import { useState } from "react";
-import { fetchUser } from "../services/api";
-import { useNavigate } from "react-router-dom";
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { fetchUser } from '../services/api';
 
-const Search = ({ onUserFound }) => {
-  const [username, setUsername] = useState(""); // Stores input username
-  const [loading, setLoading] = useState(false); // Loading state
-  const [error, setError] = useState(null); // Stores error messages
-  const navigate = useNavigate(); //Use React Router for navigation
+function Search() {
+  // Local state to capture the user's input
+  const [username, setUsername] = useState('');
+  
+  // React Router hook for navigation
+  const navigate = useNavigate();
 
-  //Handle search function
-  const handleSearch = async () => {
-    setError(null); //Clear previous errors
-
-    if (!username.trim()) {
-      setError("Please enter a GitHub username");
-      return;
-    }
-    //Ensure username follows GitHub username rules (no spaces, special characters except `-`)
-    if (!/^[a-zA-Z0-9-]+$/.test(username.trim())) {
-      setError("Invalid GitHub username format.");
-      return;
-    }
-
-    setLoading(true);
+  // Handle form submission to search for a GitHub user
+  const handleSubmit = async (e) => {
+    e.preventDefault();// Prevent default form behavior (page reload)
     try {
-      const data = await fetchUser(username);
-      if(onUserFound) {
-        onUserFound(data);
-      }
-      navigate(`/profile/${username}`); // Redirect to profile page
-    } catch (err) {
-      if (err.response && err.response.status === 404) {
-        setError("User not found."); // Improved Error Handling
-      } else {
-        setError("An error occurred. Please try again later."); //General API Error Handling
-      }
+      const user = await fetchUser(username); // Fetch the user using the inputted username
+      navigate(`/user/${user.login}`); // Navigate to the user's profile page
+    } catch (error) {
+      console.error(error); // Log error if user not found or fetch fails
     }
-    setLoading(false);
   };
 
   return (
-    <div>
-      <h2>Search GitHub User</h2>
+    <form onSubmit={handleSubmit}>
       <input
-        type="text"
-        placeholder="Enter GitHub username"
         value={username}
         onChange={(e) => setUsername(e.target.value)}
-        aria-label="GitHub Username Input"
+        placeholder="Enter Github username"
       />
-      <button onClick={handleSearch} disabled={loading}>
-        {loading ? "Searching..." : "Search"}
-      </button>
-      {error && <p style={{ color: "red" }}>{error}</p>}
-    </div>
+      <button type="submit">Search</button>
+    </form>
   );
-};
+}
 
 export default Search;

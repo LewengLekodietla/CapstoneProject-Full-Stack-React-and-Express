@@ -1,69 +1,69 @@
+import React, { useEffect, useState } from 'react';
+import { useParams } from 'react-router-dom';
+import { fetchUser, fetchRepos, fetchCommits } from '../services/api';
 
-import React, { useEffect, useState } from "react";
-import { fetchRepos, fetchCommits } from "../services/api";
+function UserProfile() {
+  // Get the dynamic username from the route parameter
+  const { username } = useParams();
 
-const UserProfile = ({ user }) => {
+  // Local state to store user data, repositories, commits, and potential errors
+  const [user, setUser] = useState(null);
   const [repos, setRepos] = useState([]);
-  const [commits, setCommits] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [commits, setCommits] = useState({});
   const [error, setError] = useState("");
 
+  // Fetch user details, repositories, and their latest commits on component mount or when the username changes
   useEffect(() => {
-    const loadRepos = async () => {
-      setLoading(true);
-      setError("");
+    const loadData = async () => {
       try {
-        const response = await fetchRepos(user.login);
-        setRepos(response.data);
+        // Fetch user profile information
+        const userData = await fetchUser(username);
+        setUser(userData);
+
+        // Fetch repositories associated with the user
+        const repoData = await fetchRepos(username);
+        setRepos(repoData);
+
+        // For each repository, fetch its commit data and build a mapping
+        const commitData = {};
+        for (const repo of repoData) {
+          const commits = await fetchCommits(username, repo.name);
+          commitData[repo.name] = commits;
+        }
+
+        setCommits(commitData);
       } catch (err) {
-        setError("Failed to fetch repos");
-      } finally {
-        setLoading(false);
+        setError("Something went wrong loading the profile.");
       }
     };
 
-    if (user?.login) {
-      loadRepos();
-    }
-  }, [user]);
+    loadData();// Trigger the async data loading
+  }, [username]);
 
-  const handleRepoClick = async (repoName) => {
-    setLoading(true);
-    setError("");
-    try {
-      const response = await fetchCommits(user.login, repoName);
-      setCommits(response.data.slice(0, 5));
-    } catch (err) {
-      setError("Failed to fetch commits");
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Handle loading or error states before rendering the profile content
+  if (error) return <p>{error}</p>;
+  if (!user) return <p>Loading user...</p>;
 
   return (
     <div>
-      <h2>{user.name || user.login}'s Repositories</h2>
-      {loading && <p>Loading...</p>}
-      {error && <p>{error}</p>}
-      <ul>
-        {repos.map((repo) => (
-          <li key={repo.id} onClick={() => handleRepoClick(repo.name)}>
-            {repo.name}
-          </li>
-        ))}
-      </ul>
-      {commits.length > 0 && (
-        <div>
-          <h3>Last 5 Commits</h3>
+      <h1>{user.name || user.login}</h1>
+      <img src={user.avatar_url} alt={`${user.login} avatar`} width="100" />
+
+      <h2>Repositories</h2>
+      {repos.map((repo) => (
+        <div key={repo.id} style={{ marginBottom: "1rem" }}>
+          <strong>{repo.name}</strong>
           <ul>
-            {commits.map((commit, index) => (
-              <li key={index}>{commit.commit.message}</li>
+            {commits[repo.name]?.map((commit, index) => (
+              <li key={index}>
+                <span>{commit.commit.message}</span> by <em>{commit.commit.author.name}</em>
+              </li>
             ))}
           </ul>
         </div>
-      )}
+      ))}
     </div>
   );
-};
+}
 
 export default UserProfile;
