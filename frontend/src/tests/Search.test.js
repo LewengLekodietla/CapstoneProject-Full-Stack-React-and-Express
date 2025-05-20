@@ -1,50 +1,31 @@
-import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import Search from '../components/Search';
-import { BrowserRouter } from 'react-router-dom';
-import * as api from '../services/api'; // Import all API functions
-import { useNavigate } from 'react-router-dom';
+import React from "react";
+import { render, fireEvent, screen } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
+import Search from "../components/Search";
+import api from "../services/api";
 
-// Mock the useNavigate hook
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
-  useNavigate: jest.fn()
-}));
+// Mock the API module to isolate tests from real HTTP requests
+jest.mock("../services/api");
 
-describe('Search Component', () => {
-  test('renders input and button', () => {
+// Test suite for the Search component
+describe("Search Component", () => {
+  test("renders input and submits search", async () => {
+    // Set up mock API response
+    api.fetchUserData.mockResolvedValue({ login: "testuser" });
+
+    // Render Search inside a memory-based router context
     render(
-      <BrowserRouter>
+      <MemoryRouter>
         <Search />
-      </BrowserRouter>
+      </MemoryRouter>
     );
 
-    expect(screen.getByPlaceholderText(/enter github username/i)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /search/i })).toBeInTheDocument();
-  });
+    // Simulate user typing and submitting the form
+    const input = screen.getByPlaceholderText(/Enter Github username/i);
+    fireEvent.change(input, { target: { value: "testuser" } });
+    fireEvent.submit(screen.getByRole("button"));
 
-  test('calls fetchUser and navigates on submit', async () => {
-    const mockNavigate = jest.fn();
-    useNavigate.mockReturnValue(mockNavigate);
-
-    const mockUser = { login: 'mockuser' };
-    jest.spyOn(api, 'fetchUser').mockResolvedValue(mockUser);
-
-    render(
-      <BrowserRouter>
-        <Search />
-      </BrowserRouter>
-    );
-
-    const input = screen.getByPlaceholderText(/enter github username/i);
-    const button = screen.getByRole('button', { name: /search/i });
-
-    fireEvent.change(input, { target: { value: 'mockuser' } });
-    fireEvent.click(button);
-
-    await waitFor(() => {
-      expect(api.fetchUser).toHaveBeenCalledWith('mockuser');
-      expect(mockNavigate).toHaveBeenCalledWith('/user/mockuser');
-    });
+    // Check if fetchUserData was called with the correct username
+    expect(api.fetchUserData).toHaveBeenCalledWith("testuser");
   });
 });

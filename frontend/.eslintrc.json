@@ -1,11 +1,7 @@
 {
-    "parser": "@babel/eslint-parser",
-    "extends": ["react-app", "eslint:recommended"],
-    "env": {
-      "browser": true,
-      "node": true,
-      "es2021": true,
-      "jest": true
-    },
-    "rules": {}
+  "extends": ["react-app", "eslint:recommended"],
+  "rules": {
+    "no-unused-vars": "warn",
+    "no-console": "off"
   }
+}

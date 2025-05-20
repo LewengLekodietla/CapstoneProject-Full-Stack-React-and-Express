@@ -1,37 +1,28 @@
-import axios from 'axios';
+const axios = require("axios");
 
-//You can use an environment variable or fallback to localhost
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:8080/api";
+const API_BASE = "http://localhost:8080/api";
 
-//Create a configured Axios instance
-const apiClient = axios.create({
-  baseURL: API_BASE_URL,
-  timeout: 5000, // Optional timeout for better error handling
-});
-
-// Fetch GitHub user details
-export const fetchUser = async (username) => {
-  const response = await axios.get(`https://api.github.com/users/${username}`);
-  return response.data;
+// Fetch user profile data
+const fetchUserData = async (username) => {
+  const res = await axios.get(`${API_BASE}/user/${username}`);
+  return res.data;
 };
 
-//Fetch user repositories
-export const fetchRepos = async (username) => {
-  const response = await axios.get(`https://api.github.com/users/${username}/repos`);
-  return response.data;
+// Fetch user's public repositories
+const fetchRepos = async (username) => {
+  const res = await axios.get(`${API_BASE}/user/${username}/repos`);
+  return res.data;
 };
 
-//Fetch last 5 commits for a repository
-export const fetchCommits = async (username, repo) => {
-  const response = await axios.get(`https://api.github.com/repos/${username}/${repo}/commits`);
-  return response.data.slice(0, 5); 
+// Fetch last 5 commits for a given repository
+const fetchCommits = async (username, repo) => {
+  const res = await axios.get(`${API_BASE}/user/${username}/repos/${repo}/commits`);
+  return res.data;
 };
 
-// Export all functions as a single object (useful for mocking in tests)
-const api = {
-  fetchUser,
+// Export all as a grouped object (optional)
+module.exports =  {
+  fetchUserData,
   fetchRepos,
   fetchCommits,
 };
-
-export default api;
